@@ -1,4 +1,4 @@
-#include "../inc/cub3d.h"
+#include "../Headers/TRODO.h"
 #include <SDL2/SDL.h>
 
 int room_a(int side, double x, double y, SDL_Renderer *renderer)

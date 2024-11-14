@@ -1,4 +1,4 @@
-#include "inc/cub3d.h"
+#include "../Headers/TRODO.h"
 #include <SDL2/SDL.h>
 
 int	arg_check(int ac, char **av)

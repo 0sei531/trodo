@@ -1,20 +1,15 @@
 #ifndef STRUCTS_H
 # define STRUCTS_H
 
-#include <SDL2/SDL.h>
+# include <SDL2/SDL.h>
 
-/*************************************************************************/
-/*========                   needed by parsing                   ========*/
-/*************************************************************************/
+/* Struct Definitions */
 typedef struct s_map
 {
     char            *content;
     struct s_map    *next;
 }   t_map;
 
-/*************************************************************************/
-/*========                          color                        ========*/
-/*************************************************************************/
 typedef struct s_rgb
 {
     int             r;
@@ -22,21 +17,15 @@ typedef struct s_rgb
     int             b;
 }   t_rgb;
 
-/*************************************************************************/
-/*========                        game mode                      ========*/
-/*************************************************************************/
 typedef struct s_img
 {
-    SDL_Texture     *texture;   // Texture for rendering in SDL
+    SDL_Texture     *texture;
     int             x;
     int             y;
-    int             width;      // Width of the image
-    int             height;     // Height of the image
+    int             width;
+    int             height;
 }   t_img;
 
-/************************************************************************/
-/*========              player position / direction             ========*/
-/************************************************************************/
 typedef struct s_dir
 {
     double          ph;
@@ -48,39 +37,27 @@ typedef struct s_dir
     double          angle;
 }   t_dir;
 
-/*************************************************************************/
-/*========   SDL instance && window instance && character imgs   ========*/
-/*************************************************************************/
 typedef struct s_sdl
 {
-    SDL_Window      *window;    // SDL window
-    SDL_Renderer    *renderer;  // SDL renderer
+    SDL_Window      *window;
+    SDL_Renderer    *renderer;
     t_img           floor;
     t_img           space;
     t_img           wall;
-    t_img           player;     // Replacing the previous 'none' with 'player'
+    t_img           player;
     t_img           cadre1;
     t_img           cadre2;
 }   t_sdl;
 
-/*************************************************************************/
-/*========        player objects [weapon / time / health]        ========*/
-/*************************************************************************/
 typedef struct s_p_objects
 {
     int             health;
     int             breath;
-    int             t1;
-    int             t2;
-    int             t3;
-    int             t4;
+    int             t1, t2, t3, t4;
     int             w;
     t_img           time[10];
 }   t_p_objects;
 
-/*************************************************************************/
-/*========                mouse [events/ position]               ========*/
-/*************************************************************************/
 typedef struct s_mouse
 {
     int             hover;
@@ -96,37 +73,19 @@ typedef struct s_mouse
     int             sett2;
 }   t_mouse;
 
-/*************************************************************************/
-/*========                      camera view                      ========*/
-/*************************************************************************/
 typedef struct s_fov
 {
     int             jumping;
     int             crouching;
 }   t_fov;
 
-/*************************************************************************/
-/*========                      intro imgs                       ========*/
-/*************************************************************************/
 typedef struct s_intro
 {
     int             fov;
     int             map;
     int             up;
-    t_img           int1;
-    t_img           int2;
-    t_img           start;
-    t_img           restart;
-    t_img           cont;
-    t_img           sett;
-    t_img           exit;
-    t_img           back;
-    t_img           reset;
-    t_img           gun;
-    t_img           tr;
-    t_img           tr2;
-    t_img           up_logo;
-    t_img           down_logo;
+    t_img           int1, int2, start, restart, cont, sett, exit;
+    t_img           back, reset, gun, tr, tr2, up_logo, down_logo;
     t_img           guide[16];
     SDL_Texture     *keys[1000];
     int             g_k[12];
@@ -144,48 +103,6 @@ typedef struct s_intro
     int             animate_sett;
 }   t_intro;
 
-/*************************************************************************/
-/*========                         sound                         ========*/
-/*************************************************************************/
-typedef struct s_sound
-{
-    int             click;
-    int             hover;
-    int             scroll;
-    int             hit;
-    int             breath;
-}   t_sound;
-
-/*************************************************************************/
-/*========                          door                         ========*/
-/*************************************************************************/
-typedef struct s_door
-{
-    int             dor;
-    int             op;
-    double          cord[2];
-    int             is_op;
-    int             color[2];
-    int             counter;
-    char            **map;
-    t_img           door[8][2];
-    double          rays[1500];
-    int             hit_wall;
-    int             c;
-}   t_door;
-
-/*************************************************************************/
-/*========                     enemy motion                      ========*/
-/*************************************************************************/
-typedef struct s_enemies_motion
-{
-    int             frame;
-    t_img           frm[100];
-}   t_enemies_motion;
-
-/*************************************************************************/
-/*========                         angles                        ========*/
-/*************************************************************************/
 typedef struct s_angle
 {
     double          r_cos[1501];
@@ -198,9 +115,6 @@ typedef struct s_angle
     double          pl_sin_plus_90;
 }   t_angle;
 
-/*************************************************************************/
-/*========                        angles                         ========*/
-/*************************************************************************/
 typedef struct s_gun
 {
     int             f_shoot;
@@ -211,14 +125,11 @@ typedef struct s_gun
     t_img           gun[90];
 }   t_gun;
 
-/************************************************************************/
-/*========              object position / direction             ========*/
-/************************************************************************/
 typedef struct s_enm
 {
     int             hit;
     int             health;
-    double          width; 
+    double          width;
     double          dist;
     int             motion;
     int             old_motion;
@@ -228,69 +139,38 @@ typedef struct s_enm
     int             y;
 }   t_enm;
 
-/*************************************************************************/
-/*========                     global struct                     ========*/
-/*************************************************************************/
 typedef struct s_data
 {
-    int                     mode;
-    int                     mv;
-    int                     g_mv;
-    t_img                   img_c;
-    t_img                   assets;
-    t_img                   guns;
-    t_img                   cross;
-    t_img                   health_enm;
-    t_img                   lose;
-    int                     show_health;
-    int                     keys[1000];
-    int                     height;
-    int                     width;
-    int                     c;
-    int                     speed;
-    double                  rays[1500];
-    int                     color[2];
-    char                    **map;
-    int                     *w_map;
-    int                     h_map;
-    int                     death;
-    t_sdl                   sdl;           // Replaces t_mlx with SDL-related items
-    t_rgb                   floor;
-    t_rgb                   ceil;
-    t_dir                   dir;
-    t_img                   img;
-    t_img                   img2;
-    t_img                   img3;
-    t_img                   blood_hit;
-    t_img                   blood_hit2;
-    t_p_objects             objects;
-    t_mouse                 mouse;
-    t_fov                   fov;
-    t_intro                 intro;
-    t_sound                 sound;
-    t_door                  door;
-    int                     indx;
-    int                     light;
-    double                  *cord;
-    int                     design;
-    int                     bld;
-    t_angle                 angles;
-    t_gun                   gun[27];
-    SDL_Texture             *sl;
-    t_img                   nums[10];
-    int                     use_gun;
-    int                     aim;
-    int                     zoom;
-    double                  map_zoom;
-    int                     map_rotation;
-    int                     mv_x;
-    int                     mv_y;
-    int                     c_x;
-    int                     c_y;
-    t_enm                   enemy[100];
-    int                     enm_nb;
-    t_enemies_motion        motion[7];
-    char                    color_maping[1080][1500];
+    int             mode;
+    int             mv;
+    int             g_mv;
+    t_img           img_c, assets, guns, cross, health_enm, lose;
+    int             show_health;
+    int             keys[1000];
+    int             height, width, c, speed;
+    double          rays[1500];
+    int             color[2];
+    char            **map;
+    int             *w_map;
+    int             h_map;
+    int             death;
+    t_sdl           sdl;
+    t_rgb           floor, ceil;
+    t_dir           dir;
+    t_img           img, img2, img3, blood_hit, blood_hit2;
+    t_p_objects     objects;
+    t_mouse         mouse;
+    t_fov           fov;
+    t_intro         intro;
+    t_angle         angles;
+    t_gun           gun[27];
+    SDL_Texture     *sl;
+    t_img           nums[10];
+    int             use_gun, aim, zoom;
+    double          map_zoom;
+    int             map_rotation, mv_x, mv_y, c_x, c_y;
+    t_enm           enemy[100];
+    int             enm_nb;
 }   t_data;
 
 #endif

@@ -1,145 +1,296 @@
 #ifndef STRUCTS_H
-#define STRUCTS_H
+# define STRUCTS_H
+
+#include <SDL2/SDL.h>
 
 /*************************************************************************/
-/*========                         SDL                           ========*/
+/*========                   needed by parsing                   ========*/
 /*************************************************************************/
-typedef struct s_sdl
+typedef struct s_map
 {
-    void            *window;    // SDL Window
-    void            *renderer;  // SDL Renderer
-    void            *texture;   // SDL Texture
-}   t_sdl;
+    char            *content;
+    struct s_map    *next;
+}   t_map;
 
 /*************************************************************************/
-/*========                     Direction                        ========*/
+/*========                          color                        ========*/
 /*************************************************************************/
+typedef struct s_rgb
+{
+    int             r;
+    int             g;
+    int             b;
+}   t_rgb;
+
+/*************************************************************************/
+/*========                        game mode                      ========*/
+/*************************************************************************/
+typedef struct s_img
+{
+    SDL_Texture     *texture;   // Texture for rendering in SDL
+    int             x;
+    int             y;
+    int             width;      // Width of the image
+    int             height;     // Height of the image
+}   t_img;
+
+/************************************************************************/
+/*========              player position / direction             ========*/
+/************************************************************************/
 typedef struct s_dir
 {
-    double          pos_x;      // Player X position
-    double          pos_y;      // Player Y position
-    double          dir_x;      // X component of direction vector
-    double          dir_y;      // Y component of direction vector
-    double          plane_x;    // X component of the camera plane
-    double          plane_y;    // Y component of the camera plane
+    double          ph;
+    int             px;
+    int             py;
+    int             s;
+    int             x;
+    int             y;
+    double          angle;
 }   t_dir;
 
 /*************************************************************************/
-/*========                 Player Objects                       ========*/
+/*========   SDL instance && window instance && character imgs   ========*/
+/*************************************************************************/
+typedef struct s_sdl
+{
+    SDL_Window      *window;    // SDL window
+    SDL_Renderer    *renderer;  // SDL renderer
+    t_img           floor;
+    t_img           space;
+    t_img           wall;
+    t_img           player;     // Replacing the previous 'none' with 'player'
+    t_img           cadre1;
+    t_img           cadre2;
+}   t_sdl;
+
+/*************************************************************************/
+/*========        player objects [weapon / time / health]        ========*/
 /*************************************************************************/
 typedef struct s_p_objects
 {
-    int             weapon;     // Current weapon index
-    int             health;     // Player health points
-    int             ammo;       // Ammunition count
+    int             health;
+    int             breath;
+    int             t1;
+    int             t2;
+    int             t3;
+    int             t4;
+    int             w;
+    t_img           time[10];
 }   t_p_objects;
 
 /*************************************************************************/
-/*========                       Mouse                         ========*/
+/*========                mouse [events/ position]               ========*/
 /*************************************************************************/
 typedef struct s_mouse
 {
-    int             x;          // Mouse X position
-    int             y;          // Mouse Y position
-    int             left;       // Left button state
-    int             right;      // Right button state
+    int             hover;
+    int             on_click;
+    int             clicked;
+    int             show;
+    int             x;
+    int             y;
+    double          on;
+    SDL_Texture     *img;
+    int             on_clk[7];
+    int             on_hov[7];
+    int             sett2;
 }   t_mouse;
 
 /*************************************************************************/
-/*========                        FOV                           ========*/
+/*========                      camera view                      ========*/
 /*************************************************************************/
 typedef struct s_fov
 {
-    double          fov_angle;  // Field of view angle in degrees
-    double          distance;   // Distance to the projection plane
+    int             jumping;
+    int             crouching;
 }   t_fov;
 
 /*************************************************************************/
-/*========                       Intro                          ========*/
+/*========                      intro imgs                       ========*/
 /*************************************************************************/
 typedef struct s_intro
 {
-    int             active;     // Is the intro screen active
-    t_img           background; // Intro background image
+    int             fov;
+    int             map;
+    int             up;
+    t_img           int1;
+    t_img           int2;
+    t_img           start;
+    t_img           restart;
+    t_img           cont;
+    t_img           sett;
+    t_img           exit;
+    t_img           back;
+    t_img           reset;
+    t_img           gun;
+    t_img           tr;
+    t_img           tr2;
+    t_img           up_logo;
+    t_img           down_logo;
+    t_img           guide[16];
+    SDL_Texture     *keys[1000];
+    int             g_k[12];
+    int             on_hov[17];
+    int             on_clk[17];
+    int             volume;
+    t_img           vol_icon[3];
+    t_img           vol[2];
+    int             vol_click;
+    int             light;
+    t_img           light_icon[2];
+    t_img           lgt[2];
+    t_img           lt;
+    int             lgt_click;
+    int             animate_sett;
 }   t_intro;
 
 /*************************************************************************/
-/*========                       Sound                          ========*/
+/*========                         sound                         ========*/
 /*************************************************************************/
 typedef struct s_sound
 {
-    void            *music;     // Background music
-    void            *effects;   // Sound effects
+    int             click;
+    int             hover;
+    int             scroll;
+    int             hit;
+    int             breath;
 }   t_sound;
 
 /*************************************************************************/
-/*========                        Door                          ========*/
+/*========                          door                         ========*/
 /*************************************************************************/
 typedef struct s_door
 {
-    int             is_open;    // Door open state
-    double          pos_x;      // Door X position
-    double          pos_y;      // Door Y position
+    int             dor;
+    int             op;
+    double          cord[2];
+    int             is_op;
+    int             color[2];
+    int             counter;
+    char            **map;
+    t_img           door[8][2];
+    double          rays[1500];
+    int             hit_wall;
+    int             c;
 }   t_door;
 
 /*************************************************************************/
-/*========                  Enemy Motion                       ========*/
+/*========                     enemy motion                      ========*/
 /*************************************************************************/
 typedef struct s_enemies_motion
 {
-    int             count;      // Number of enemies
-    double          *positions; // Array of enemy positions
+    int             frame;
+    t_img           frm[100];
 }   t_enemies_motion;
 
 /*************************************************************************/
-/*========                        Angles                        ========*/
+/*========                         angles                        ========*/
 /*************************************************************************/
 typedef struct s_angle
 {
-    double          r_cos[1501];         // Precomputed cos values
-    double          r_sin[1501];         // Precomputed sin values
-    double          r_res_cos[1501];    // Precomputed residual cos
-    double          cte_tan;            // Constant tangent
-    double          pl_cos;             // Player plane cosine
-    double          pl_sin;             // Player plane sine
-    double          pl_cos_plus_90;     // Plane cosine at +90 degrees
-    double          pl_sin_plus_90;     // Plane sine at +90 degrees
+    double          r_cos[1501];
+    double          r_sin[1501];
+    double          r_res_cos[1501];
+    double          cte_tan;
+    double          pl_cos;
+    double          pl_sin;
+    double          pl_cos_plus_90;
+    double          pl_sin_plus_90;
 }   t_angle;
 
 /*************************************************************************/
-/*========                        Objects                        ========*/
+/*========                        angles                         ========*/
 /*************************************************************************/
-typedef struct s_object
+typedef struct s_gun
 {
-    int             active;     // Is the object active in the scene
-    int             type;       // Object type
-    double          pos_x;      // X position in the game world
-    double          pos_y;      // Y position in the game world
-    t_img           sprite;     // Object sprite
-}   t_object;
+    int             f_shoot;
+    int             f_reload;
+    int             frame;
+    int             case_bullet;
+    int             bullet;
+    t_img           gun[90];
+}   t_gun;
+
+/************************************************************************/
+/*========              object position / direction             ========*/
+/************************************************************************/
+typedef struct s_enm
+{
+    int             hit;
+    int             health;
+    double          width; 
+    double          dist;
+    int             motion;
+    int             old_motion;
+    int             frm;
+    int             id;
+    int             x;
+    int             y;
+}   t_enm;
 
 /*************************************************************************/
-/*========                       Game Data                      ========*/
+/*========                     global struct                     ========*/
 /*************************************************************************/
-typedef struct s_game
+typedef struct s_data
 {
-    t_sdl           sdl;        // SDL context for rendering
-    t_dir           dir;        // Player position and direction
-    t_p_objects     p_objects;  // Player's objects (weapons, health, etc.)
-    t_mouse         mouse;      // Mouse state
-    t_fov           fov;        // Camera field of view
-    t_intro         intro;      // Intro screen assets
-    t_sound         sound;      // Sound assets and states
-    t_door          door;       // Door properties
-    t_enemies_motion enemies_motion; // Enemy motion animations
-    t_angle         angles;     // Pre-calculated angle values for rendering
-    t_object        objects[100]; // Array of game objects (enemies, items, etc.)
-    int             game_mode;  // Current game mode
-    char            **map;      // Game map layout
-    int             map_width;  // Width of the map
-    int             map_height; // Height of the map
-    int             score;      // Player's score
-    int             level;      // Current game level
-}   t_game;
+    int                     mode;
+    int                     mv;
+    int                     g_mv;
+    t_img                   img_c;
+    t_img                   assets;
+    t_img                   guns;
+    t_img                   cross;
+    t_img                   health_enm;
+    t_img                   lose;
+    int                     show_health;
+    int                     keys[1000];
+    int                     height;
+    int                     width;
+    int                     c;
+    int                     speed;
+    double                  rays[1500];
+    int                     color[2];
+    char                    **map;
+    int                     *w_map;
+    int                     h_map;
+    int                     death;
+    t_sdl                   sdl;           // Replaces t_mlx with SDL-related items
+    t_rgb                   floor;
+    t_rgb                   ceil;
+    t_dir                   dir;
+    t_img                   img;
+    t_img                   img2;
+    t_img                   img3;
+    t_img                   blood_hit;
+    t_img                   blood_hit2;
+    t_p_objects             objects;
+    t_mouse                 mouse;
+    t_fov                   fov;
+    t_intro                 intro;
+    t_sound                 sound;
+    t_door                  door;
+    int                     indx;
+    int                     light;
+    double                  *cord;
+    int                     design;
+    int                     bld;
+    t_angle                 angles;
+    t_gun                   gun[27];
+    SDL_Texture             *sl;
+    t_img                   nums[10];
+    int                     use_gun;
+    int                     aim;
+    int                     zoom;
+    double                  map_zoom;
+    int                     map_rotation;
+    int                     mv_x;
+    int                     mv_y;
+    int                     c_x;
+    int                     c_y;
+    t_enm                   enemy[100];
+    int                     enm_nb;
+    t_enemies_motion        motion[7];
+    char                    color_maping[1080][1500];
+}   t_data;
 
 #endif

@@ -1,7 +1,7 @@
 # TRODO Project
 
 ## Overview
-Cub3D is a 3D raycasting game written in C. The goal is to recreate a simplified version of Wolfenstein 3D. The project uses the **SDL2** library for graphics rendering and input handling.
+Trodo is a 3D raycasting game written in C. The goal is to recreate a simplified version of Wolfenstein 3D. The project uses the **SDL2** library for graphics rendering and input handling.
 
 ## Requirements
 
@@ -41,4 +41,4 @@ Cub3D is a 3D raycasting game written in C. The goal is to recreate a simplified
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-username/Cub3D.git
+   git clone https://github.com/your-username/Trodo.git

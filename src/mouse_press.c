@@ -1,4 +1,5 @@
- #include "../Headers/TRODO.h"
+#include "../Headers/TRODO.h"
+#include "../Headers/structs.h"
 
 // Function to handle mouse press events for the intro mode
 void mouse_press_intro(SDL_Event *event)

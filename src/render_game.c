@@ -1,5 +1,6 @@
 #include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
+#include "../Headers/structs.h"
+#include "../Headers/TRODO.h"
 
 typedef struct s_img {
     SDL_Surface *surface;

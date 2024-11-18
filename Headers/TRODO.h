@@ -31,7 +31,7 @@ size_t ft_strlen2(char **str);
 char *ft_strjoin(char *s1, char *s2);
 char **ft_split(char const *s, char c);
 void *ft_memcpy(void *dst, const void *src, size_t n);
-char *ft_substr(char const *s, int start, int len);
+char *ft_substr(char const *s, size_t start, size_t len);
 char *ft_strchr(const char *str, int c);
 char *get_next_line(int fd);
 int ft_atoi(const char *str);

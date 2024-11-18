@@ -173,4 +173,4 @@ typedef struct s_data
     int             enm_nb;
 }   t_data;
 
-#endif
+#endif // STRUCTS_H

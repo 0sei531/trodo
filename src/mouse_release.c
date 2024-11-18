@@ -1,5 +1,6 @@
-#include "../Headers/TRODO.h"
 #include <SDL2/SDL.h>
+#include "../Headers/structs.h"
+#include "../Headers/TRODO.h"
 
 void mouse_release_intro(SDL_Event *event)
 {

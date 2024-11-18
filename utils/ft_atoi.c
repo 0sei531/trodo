@@ -1,62 +1,75 @@
 #include "../Headers/TRODO.h"
-#include <stdlib.h>
 #include <unistd.h>
 
-int ft_atoi(const char *str) {
-    int i = 0, num = 0, sign = 1;
+int ft_atoi(const char *str)
+{
+    int i;
+    int sign;
+    int result;
 
-    while (str[i] && ((str[i] >= 9 && str[i] <= 13) || str[i] == 32))
+    i = 0;
+    sign = 1;
+    result = 0;
+
+    while (str[i] == ' ' || (str[i] >= 9 && str[i] <= 13))
         i++;
-    if (str[i] == '-')
-        sign = -1;
     if (str[i] == '-' || str[i] == '+')
-        i++;
-    while (str[i] != '\0' && ft_isdigit(str[i])) {
-        num = (num * 10) + (str[i] - '0');
+    {
+        if (str[i] == '-')
+            sign = -1;
         i++;
     }
-    return num * sign;
+    while (str[i] != '\0' && ftisdigit(str[i]))
+    {
+        result = result * 10 + (str[i] - '0');
+        i++;
+    }
+    return (sign * result);
 }
 
-void *ft_memset(void *b, int c, size_t len) {
-    while (len--)
-        ((unsigned char *)b)[len] = (unsigned char)c;
-    return b;
-}
+void *ft_calloc(size_t count, size_t size)
+{
+    void *ptr;
+    ssize_t write_result;
 
-void *ft_calloc(size_t count, size_t size) {
-    void *ptr = malloc(count * size);
-    if (!ptr) {
-        SDL_Quit();
-        write(STDERR_FILENO, "Memory allocation failed!\n", 25);
-        exit(1);
+    ptr = malloc(count * size);
+    if (!ptr)
+    {
+        write_result = write(STDERR_FILENO, "Memory allocation failed!\n", 25);
+        (void)write_result;
+        return (NULL);
     }
     ft_memset(ptr, 0, count * size);
-    return ptr;
+    return (ptr);
 }
 
-static int ft_size_nb(int n) {
-    int i = 1 + !(n) + (n < 0);
-    while (n && i++)
+char *ft_itoa(int n)
+{
+    char    *res;
+    int     len;
+    int     tmp;
+    int     i;
+    
+    len = 1;
+    tmp = n;
+    while (tmp /= 10)
+        len++;
+    i = len + (n < 0);
+    res = (char *)malloc(sizeof(char) * (i + 1));
+    if (!res)
+    {
+        ssize_t write_result = write(STDERR_FILENO, 
+            "Failed to convert integer to string: memory allocation failed\n", 65);
+        (void)write_result;
+        return (NULL);
+    }
+    res[i] = '\0';
+    if (n < 0)
+        res[0] = '-';
+    while (i-- > (n < 0))
+    {
+        res[i] = '0' + (n < 0 ? -(n % 10) : n % 10);
         n /= 10;
-    return i;
-}
-
-char *ft_itoa(int n) {
-    char *res = ft_calloc(ft_size_nb(n), 1);
-    if (!res) {
-        SDL_Quit();
-        write(STDERR_FILENO, "Failed to convert integer to string: memory allocation failed\n", 65);
-        exit(1);
     }
-    res[0] = '-';
-    res[--i] = '\0';
-    unsigned int u = -n * (n < 0) + n * !(n < 0);
-    if (!u)
-        res[i - 1] = '0';
-    while (u) {
-        res[--i] = (u % 10) + '0';
-        u /= 10;
-    }
-    return res;
+    return (res);
 }

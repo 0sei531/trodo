@@ -61,6 +61,7 @@ void set_minimap(void);
 void set_char_to_win(void);
 void free_map_array(char **map);
 void free_map_struct(t_map *map);
+int ft_lst_size(t_map *lst);
 
 /* Movement and Rotation Functions */
 void up(void);

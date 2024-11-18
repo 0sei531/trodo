@@ -1,5 +1,6 @@
 #include "../Headers/TRODO.h"
 #include <SDL2/SDL.h>
+#include "../Headers/structs.h"
 
 int room_a(int side, double x, double y, SDL_Renderer *renderer)
 {

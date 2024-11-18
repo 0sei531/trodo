@@ -92,4 +92,4 @@ void        init_motion(void);
 void        paint_hit_blood(void);
 void        free_map(char **map);
 
-#endif
+#endif // TRODO_H

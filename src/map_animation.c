@@ -1,5 +1,6 @@
 #include <SDL2/SDL.h>
 #include "../Headers/TRODO.h"
+#include "../Headers/structs.h"
 
 int get_minimap_color2(int x, int y)
 {

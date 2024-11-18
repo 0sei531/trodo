@@ -1,26 +1,28 @@
 #include "../Headers/TRODO.h"
 #include <SDL2/SDL.h>
 
-int	arg_check(int ac, char **av)
+int arg_check(int ac, char **av)
 {
-    char	*error;
+    char *error;
+    ssize_t write_ret;
 
     error = NULL;
     if (ac != 2)
         error = "Error: too many arguments\n";
     else if (ft_strncmp(av[1] + ft_strlen(av[1]) - 4, ".cub", 4) != 0)
         error = "Error: invalid file extension\n";
-    
+
     if (error)
     {
-        write(2, error, ft_strlen(error));
+        write_ret = write(2, error, ft_strlen(error));
+        if (write_ret == -1)
+            return (0);  // Handle write error
         return (0);
     }
     return (1);
 }
 
-// Function to initialize SDL2
-int	init_sdl(SDL_Window **window, SDL_Renderer **renderer)
+int init_sdl(SDL_Window **window, SDL_Renderer **renderer)
 {
     if (SDL_Init(SDL_INIT_VIDEO) != 0)
     {
@@ -29,7 +31,8 @@ int	init_sdl(SDL_Window **window, SDL_Renderer **renderer)
         return (0);
     }
 
-    *window = SDL_CreateWindow("Cub3D", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 600, SDL_WINDOW_SHOWN);
+    *window = SDL_CreateWindow("Cub3D", SDL_WINDOWPOS_CENTERED, 
+        SDL_WINDOWPOS_CENTERED, 800, 600, SDL_WINDOW_SHOWN);
     if (!*window)
     {
         ft_putstr_fd("Error creating SDL window: ", 2);
@@ -53,19 +56,23 @@ int	init_sdl(SDL_Window **window, SDL_Renderer **renderer)
 
 void clean_up(SDL_Window *window, SDL_Renderer *renderer, t_map *map)
 {
-    SDL_DestroyRenderer(renderer);
-    SDL_DestroyWindow(window);
+    if (renderer)
+        SDL_DestroyRenderer(renderer);
+    if (window)
+        SDL_DestroyWindow(window);
     SDL_Quit();
-    free_map(map);  // Clean up your map structure
+    
+    // Use the appropriate free function based on your structure
+    free_map_struct(map);  // Using the function declared in your header
 }
 
-int	main(int ac, char **av)
+int main(int ac, char **av)
 {
-    SDL_Window		*window;
-    SDL_Renderer	*renderer;
-    t_map			*map;
-    char			*buff;
-    int				fd;
+    SDL_Window *window;
+    SDL_Renderer *renderer;
+    t_map *map;
+    char *buff;
+    int fd;
 
     // Initialize SDL2
     if (!init_sdl(&window, &renderer))
@@ -94,18 +101,17 @@ int	main(int ac, char **av)
     {
         if (ft_strlen(buff) > 0 && buff[ft_strlen(buff) - 1] == '\n')
             buff[ft_strlen(buff) - 1] = '\0';  // Remove trailing newline
-        ft_lst_add_back(&map, ft_lst_new(buff)); // Add to the map
+        ft_lst_add_back(&map, ft_lst_new(buff));  // Add to the map
         free(buff);  // Free memory after use
     }
 
-    // Close the file after reading
     close(fd);
 
-    // Parse the map (if needed) and setup the minimap
+    // Parse the map and setup the minimap
     parsing(map);
     set_minimap();
 
-    // Main loop to handle events and render graphics
+    // Main game loop
     SDL_Event event;
     int running = 1;
 
@@ -116,18 +122,27 @@ int	main(int ac, char **av)
         {
             if (event.type == SDL_QUIT)
                 running = 0;
+            else if (event.type == SDL_KEYDOWN)
+                handle_key_press(&event, &data);
+            else if (event.type == SDL_KEYUP)
+                handle_key_release(&event, &data);
+            else if (event.type == SDL_MOUSEBUTTONDOWN)
+                handle_mouse_press(&event, &data);
+            else if (event.type == SDL_MOUSEMOTION)
+                handle_mouse_motion(&event, &data);
+            else if (event.type == SDL_MOUSEBUTTONUP)
+                handle_mouse_release(&event, &data);
         }
 
-        // Clear the screen with a black color
+        // Clear screen
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
 
-        // Render the minimap (placeholder for now as red rectangle)
-        SDL_Rect rect = { 100, 100, 200, 200 };  // Sample rectangle coordinates
-        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);  // Red color
-        SDL_RenderFillRect(renderer, &rect);
+        // Render game state
+        render_game(&data);
+        set_rays(renderer);
 
-        // Present the renderer (update the screen)
+        // Present the renderer
         SDL_RenderPresent(renderer);
     }
 

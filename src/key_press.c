@@ -1,4 +1,5 @@
 #include "../Headers/TRODO.h"
+#include "../Headers/structs.h"
 #include <SDL2/SDL.h>
 
 // Handle key press in the intro mode

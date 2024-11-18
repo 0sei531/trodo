@@ -11,17 +11,23 @@
 #include <semaphore.h>
 #include <x86intrin.h>
 #include <SDL2/SDL.h>
+# include <stdbool.h>
+# include <stddef.h>
 
 #include "defines.h"
 #include "structs.h"
 
 extern t_data data;
 
+typedef struct s_map t_map;
+typedef struct s_img t_img;
+typedef struct s_data t_data;
+
 /* Utility Functions */
-Bool ftisdigit(int c);
-Bool ftstr_isdigit(char *s);
-int ft_strlen(const char *str);
-int ft_strlen2(char **str);
+bool ftisdigit(int c);
+bool ftstr_isdigit(char *s);
+size_t ft_strlen(const char *str);
+size_t ft_strlen2(char **str);
 char *ft_strjoin(char *s1, char *s2);
 char **ft_split(char const *s, char c);
 void *ft_memcpy(void *dst, const void *src, size_t n);
@@ -70,7 +76,7 @@ void handle_mouse_motion(SDL_Event *event, t_data *data);
 void handle_mouse_release(SDL_Event *event, t_data *data);
 
 /* Rendering and Game Mechanics */
-void set_rays(void);
+void set_rays(SDL_Renderer *renderer);  // Updated to include renderer parameter
 void cast_to_3d(int i);
 void render_pixel(SDL_Renderer *renderer, int x, int y, int color);
 void before(void);

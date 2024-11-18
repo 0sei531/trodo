@@ -31,6 +31,7 @@ char        *get_next_line(int fd);
 int         ft_atoi(const char *str);
 char        *ft_str_trim(char const *s1, char const *set);
 char        *ft_strnstr(const char *haystack, const char *needle, size_t len);
+int         ft_strncmp(const char *s1, const char *s2, size_t n);  // Added declaration
 char        *ft_itoa(int n);
 void        ft_putstr_fd(const char *str, int fd);
 void        init_args(t_map **map);
@@ -66,7 +67,7 @@ void        handle_key_press(SDL_Event *event, t_data *data);
 void        handle_key_release(SDL_Event *event, t_data *data);
 void        handle_mouse_press(SDL_Event *event, t_data *data);
 void        handle_mouse_motion(SDL_Event *event, t_data *data);
-void        handle_mouse_release(SDL_Event *event, t_data *data);
+void        handle_mouse_release(SDL_Event *event, t_data *data);  // This function should be used
 
 /* Rendering and Game Mechanics */
 void        set_rays(void);

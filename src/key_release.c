@@ -1,4 +1,5 @@
 #include "../Headers/TRODO.h"
+#include "../Headers/structs.h"
 #include <SDL2/SDL.h>
 
 int key_release(SDL_KeyboardEvent *key, void *d)

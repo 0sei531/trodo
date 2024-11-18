@@ -4,6 +4,7 @@
 size_t ft_strlen(const char *str)
 {
     size_t len;
+    
     if (!str)
     {
         SDL_Log("Error: NULL pointer passed to ft_strlen");
@@ -18,6 +19,7 @@ size_t ft_strlen(const char *str)
 size_t ft_strlen2(char **str)
 {
     size_t len;
+    
     if (!str)
     {
         SDL_Log("Error: NULL pointer passed to ft_strlen2");
@@ -27,9 +29,4 @@ size_t ft_strlen2(char **str)
     while (str[len])
         len++;
     return (len);
-}}
-	len = 0;
-	while (str[len])
-		len++;
-	return (len);
 }

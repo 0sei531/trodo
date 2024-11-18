@@ -79,7 +79,7 @@ void handle_mouse_motion(SDL_Event *event, t_data *data);
 void handle_mouse_release(SDL_Event *event, t_data *data);
 
 /* Rendering and Game Mechanics */
-void set_rays(SDL_Renderer *renderer);  // Updated to include renderer parameter
+void set_rays(SDL_Renderer *renderer)  // Updated to include renderer parameter
 void cast_to_3d(int i);
 void render_pixel(SDL_Renderer *renderer, int x, int y, int color);
 void before(void);
@@ -95,7 +95,7 @@ void set_volume(void);
 void init_keys(void);
 void map_appending(void);
 int set_design(int side, double x, double y, char design);
-void init_angles(void);
+void init_angles();
 void init_guns(void);
 void init_motion(void);
 void paint_hit_blood(void);

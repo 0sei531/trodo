@@ -3,9 +3,8 @@
 #include <unistd.h>
 #include <stdlib.h>
 
-char *get_next_line(int fd)
+ char *get_next_line(int fd)
 {
-    char    *line = NULL;
     char    *buffer;
     size_t  buffer_size = 1024; // Start with a 1KB buffer
     size_t  line_len = 0;
@@ -75,6 +74,5 @@ char *get_next_line(int fd)
     buffer[line_len] = '\0';  // Null-terminate the last line
     char *result = strdup(buffer);
     free(buffer);
-
     return (result);
 }

@@ -6,11 +6,10 @@ int ft_atoi(const char *str)
     int i;
     int sign;
     int result;
-
+    
     i = 0;
     sign = 1;
     result = 0;
-
     while (str[i] == ' ' || (str[i] >= 9 && str[i] <= 13))
         i++;
     if (str[i] == '-' || str[i] == '+')
@@ -31,15 +30,23 @@ void *ft_calloc(size_t count, size_t size)
 {
     void *ptr;
     ssize_t write_result;
+    unsigned char *byte_ptr;
+    size_t total_size;
 
-    ptr = malloc(count * size);
+    total_size = count * size;
+    ptr = malloc(total_size);
     if (!ptr)
     {
         write_result = write(STDERR_FILENO, "Memory allocation failed!\n", 25);
         (void)write_result;
         return (NULL);
     }
-    ft_memset(ptr, 0, count * size);
+    
+    // Zero out the allocated memory
+    byte_ptr = (unsigned char *)ptr;
+    while (total_size--)
+        *byte_ptr++ = 0;
+    
     return (ptr);
 }
 

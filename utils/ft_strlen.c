@@ -1,10 +1,10 @@
-#include "../Headers/TRODO.h"
 #include <SDL2/SDL.h>
+#include "../Headers/TRODO.h"
 
-size_t ft_strlen(const char *str)
+size_t  ft_strlen(const char *str)
 {
-    size_t len;
-    
+    size_t  len;
+
     if (!str)
     {
         SDL_Log("Error: NULL pointer passed to ft_strlen");
@@ -16,10 +16,10 @@ size_t ft_strlen(const char *str)
     return (len);
 }
 
-size_t ft_strlen2(char **str)
+size_t  ft_strlen2(char **str)
 {
-    size_t len;
-    
+    size_t  len;
+
     if (!str)
     {
         SDL_Log("Error: NULL pointer passed to ft_strlen2");
@@ -29,4 +29,4 @@ size_t ft_strlen2(char **str)
     while (str[len])
         len++;
     return (len);
-}
+} 

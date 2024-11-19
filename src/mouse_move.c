@@ -1,5 +1,6 @@
 #include <SDL2/SDL.h>
-#include "../inc/cub3d.h"
+#include "../Headers/structs.h"
+#include "../Headers/TRODO.h"
 
 // Handle mouse movement for intro
 void mouse_move_intro(int x, int y)

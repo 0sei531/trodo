@@ -1,5 +1,6 @@
-#include "../Headers/TRODO.h"
 #include <SDL2/SDL.h>
+#include "../Headers/structs.h"
+#include "../Headers/TRODO.h"
 #include <math.h>
 #define RES_X 1920
 #define RES_Y 1080

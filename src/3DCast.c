@@ -3,102 +3,120 @@
 #include <SDL2/SDL.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 
 #define WIDTH 800
 #define HEIGHT 600
 
-// Struct to hold image data
-typedef struct {
-    SDL_Texture *texture;
-    int width;
-    int height;
-} t_img;
 
-// Function to put a pixel on an SDL surface
-void img_pix_put(SDL_Surface *surface, int x, int y, int color) {
-    Uint32 *pixels = (Uint32 *)surface->pixels;
-    pixels[(y * surface->w) + x] = color;
-}
-
-// Function to load an image and convert it to texture
-t_img load_texture(SDL_Renderer *renderer, const char *path) {
+t_img load_texture(SDL_Renderer *renderer, const char *path)
+{
     t_img img;
-    SDL_Surface *surface = SDL_LoadBMP(path); // Using SDL2 function to load BMP files
-    if (!surface) {
+    SDL_Surface *surface = SDL_LoadBMP(path);
+    if (!surface)
+    {
         printf("Error loading BMP: %s\n", SDL_GetError());
         exit(1);
     }
-
     img.texture = SDL_CreateTextureFromSurface(renderer, surface);
-    if (!img.texture) {
+    if (!img.texture)
+    {
         printf("Error creating texture: %s\n", SDL_GetError());
         SDL_FreeSurface(surface);
         exit(1);
     }
-
     img.width = surface->w;
     img.height = surface->h;
-    SDL_FreeSurface(surface); // Free the surface as it's no longer needed
-
+    img.x = 0;
+    img.y = 0;
+    SDL_FreeSurface(surface);
     return img;
 }
 
-// Function to render an image
-void render_texture(SDL_Renderer *renderer, t_img *img, int x, int y) {
-    SDL_Rect dest = {x, y, img->width, img->height};
-    SDL_RenderCopy(renderer, img->texture, NULL, &dest); // Render the texture
-}
 
-int main() {
-    if (SDL_Init(SDL_INIT_VIDEO) != 0) {
-        printf("SDL_Init Error: %s\n", SDL_GetError());
-        return 1;
+void cast_to_3d(int ray_index)
+{
+    double dist = data.rays[ray_index];
+
+    // Prevent division by zero and extreme values
+    if (dist < 0.1)
+    {
+        dist = 0.1;
     }
 
-    // Create the window
-    SDL_Window *window = SDL_CreateWindow("Cub3D", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WIDTH, HEIGHT, SDL_WINDOW_SHOWN);
-    if (!window) {
-        printf("SDL_CreateWindow Error: %s\n", SDL_GetError());
-        SDL_Quit();
-        return 1;
+    // Calculate wall height using distance and field of view correction
+    double ray_angle = (ray_index - RES_X/2) * (ANGLE * M_PI / 180.0);
+    double corrected_distance = dist * cos(ray_angle);
+
+    // Use RES_Y for consistent vertical resolution
+    int line_height = (int)((RES_Y * ANGLES) / corrected_distance);
+
+    // Calculate drawing boundaries
+    int draw_start = -line_height / 2 + RES_Y / 2;
+    if (draw_start < 0)
+    {
+        draw_start = 0;
     }
 
-    // Create the renderer
-    SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-    if (!renderer) {
-        printf("SDL_CreateRenderer Error: %s\n", SDL_GetError());
-        SDL_DestroyWindow(window);
-        SDL_Quit();
-        return 1;
+    int draw_end = line_height / 2 + RES_Y / 2;
+    if (draw_end >= RES_Y)
+    {
+        draw_end = RES_Y - 1;
     }
 
-    // Load texture (you should replace "image.bmp" with the actual image path)
-    t_img img = load_texture(renderer, "image.bmp");
+    // Store wall rendering information
+    data.walls[ray_index].height = line_height;
+    data.walls[ray_index].top = draw_start;
+    data.walls[ray_index].bottom = draw_end;
 
-    int running = 1;
-    SDL_Event event;
+    // Calculate texture coordinates for walls
+    if (data.door.hit_wall)
+    {
+        int tex_x = (int)(data.color[1]) % ANGLES;
+        data.walls[ray_index].tex_x = tex_x;
 
-    // Main loop
-    while (running) {
-        while (SDL_PollEvent(&event)) {
-            if (event.type == SDL_QUIT) {
-                running = 0;
+        // Calculate shading based on distance
+        double shade = 1.0;
+        if (dist > 0)
+        {
+            shade = 1.0 - fmin(dist / (RES_X * 0.66), 0.9);
+        }
+        data.walls[ray_index].shade = shade;
+    }
+
+    // Calculate floor casting
+    if (draw_end < RES_Y)
+    {
+        for (int y = draw_end; y < RES_Y; y++)
+        {
+            double current_dist = RES_Y / (2.0 * y - RES_Y);
+            double weight = current_dist / dist;
+
+            double floor_x = weight * data.dir.x + (1.0 - weight) * data.dir.x;
+            double floor_y = weight * data.dir.y + (1.0 - weight) * data.dir.y;
+
+            if ((y - draw_end) < RES_Y/2)
+            {
+                data.floors[ray_index][y - draw_end].tex_x = (int)(floor_x * ANGLES) % ANGLES;
+                data.floors[ray_index][y - draw_end].tex_y = (int)(floor_y * ANGLES) % ANGLES;
+                data.floors[ray_index][y - draw_end].distance = current_dist;
             }
         }
-
-        SDL_RenderClear(renderer); // Clear the screen
-
-        // Render the texture at position (100, 100)
-        render_texture(renderer, &img, 100, 100);
-
-        SDL_RenderPresent(renderer); // Present the rendered content
     }
 
-    // Cleanup
-    SDL_DestroyTexture(img.texture);
-    SDL_DestroyRenderer(renderer);
-    SDL_DestroyWindow(window);
-    SDL_Quit();
+    // Calculate ceiling casting
+    if (draw_start > 0)
+    {
+        for (int y = 0; y < draw_start && y < RES_Y/2; y++)
+        {
+            double ceiling_dist = RES_Y / (RES_Y - 2.0 * y);
 
-    return 0;
+            double ceiling_x = data.dir.x + ceiling_dist * data.angles.r_cos[ray_index];
+            double ceiling_y = data.dir.y + ceiling_dist * data.angles.r_sin[ray_index];
+
+            data.ceilings[ray_index][y].tex_x = (int)ceiling_x % ANGLES;
+            data.ceilings[ray_index][y].tex_y = (int)ceiling_y % ANGLES;
+            data.ceilings[ray_index][y].distance = ceiling_dist;
+        }
+    }
 }

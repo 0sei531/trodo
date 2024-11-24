@@ -62,15 +62,7 @@
 /*************************************************************/
 /*========                 game mode                 ========*/
 /*************************************************************/
-# define INTRO 1
-# define INTRO1 2
-# define INTRO2 3
-# define SETTING 4
-# define S_CONTROL 5
-# define GAME 6
 # define G_EXIT 7
-# define G_MAP 8
-# define SETTING2 9
 # define ANIMATE_SETT2_IN 10
 # define ANIMATE_SETT2_OUT 11
 

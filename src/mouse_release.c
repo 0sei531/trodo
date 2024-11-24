@@ -11,7 +11,7 @@ void mouse_release_intro(SDL_Event *event)
         // data.mode = SETTING;
 }
 
-void set_vol_lgt_as_def(t_img *img2, int *v, int val)
+void set_vol_lgt_as_def(SDL_Texture **img2, int *v, int val)
 {
     *v = val;
     if (*v > 200)
@@ -108,9 +108,8 @@ void mouse_release_map(SDL_Event *event)
         data.keys[data.intro.g_k[8]] = 0;
 }
 
-int mouse_release(SDL_Event *event, void *w)
+int mouse_release(SDL_Event *event, void *w __attribute__((unused)))
 {
-    w = NULL;
     int x, y;
     SDL_GetMouseState(&x, &y);
 
@@ -120,10 +119,8 @@ int mouse_release(SDL_Event *event, void *w)
         mouse_release_setting(event, x, y);
     else if (data.mode == S_CONTROL)
         mouse_release_control(event, x, y);
-    else if (data.mode == G_MAP)
-        mouse_release_map(event);
     else if (data.mode == GAME)
         mouse_release_game(event);
-
+    
     return (0);
 }

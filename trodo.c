@@ -1,152 +1,174 @@
-#include "../Headers/TRODO.h"
+#include "Headers/TRODO.h"
+#include "Headers/structs.h"
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
+#include <math.h>
 
-int arg_check(int ac, char **av)
-{
-    char *error;
-    ssize_t write_ret;
+/* Global variable declaration - definition should be in a separate .c file */
+extern t_data data;
 
-    error = NULL;
-    if (ac != 2)
-        error = "Error: too many arguments\n";
-    else if (ft_strncmp(av[1] + ft_strlen(av[1]) - 4, ".cub", 4) != 0)
-        error = "Error: invalid file extension\n";
+/* Local function prototypes */
+static int arg_check(int ac, char **av);
+static int init_sdl(SDL_Window **window, SDL_Renderer **renderer);
+static void print_error(const char *msg);
 
-    if (error)
-    {
-        write_ret = write(2, error, ft_strlen(error));
-        if (write_ret == -1)
-            return (0);  // Handle write error
-        return (0);
+/* Error handling helper function */
+static void print_error(const char *msg) {
+    if (msg) {
+        ssize_t ret;
+        size_t len = ft_strlen(msg);
+        
+        ret = write(STDERR_FILENO, msg, len);
+        if (ret < 0 || (size_t)ret != len) {
+            // Handle write error - in this case we can't really print an error 
+            // about failing to print an error, so we'll just return
+            return;
+        }
+        
+        ret = write(STDERR_FILENO, "\n", 1);
+        if (ret < 0 || ret != 1) {
+            return;
+        }
     }
-    return (1);
 }
 
-int init_sdl(SDL_Window **window, SDL_Renderer **renderer)
-{
-    if (SDL_Init(SDL_INIT_VIDEO) != 0)
-    {
-        ft_putstr_fd("SDL2 initialization failed: ", 2);
-        ft_putstr_fd(SDL_GetError(), 2);
-        return (0);
+/* Argument validation function */
+static int arg_check(int ac, char **av) {
+    if (ac != 2) {
+        print_error("Error: Invalid number of arguments");
+        return 0;
     }
 
-    *window = SDL_CreateWindow("Cub3D", SDL_WINDOWPOS_CENTERED, 
-        SDL_WINDOWPOS_CENTERED, 800, 600, SDL_WINDOW_SHOWN);
-    if (!*window)
-    {
-        ft_putstr_fd("Error creating SDL window: ", 2);
-        ft_putstr_fd(SDL_GetError(), 2);
+    size_t len = ft_strlen(av[1]);
+    if (len < 4 || ft_strncmp(av[1] + len - 4, ".cub", 4) != 0) {
+        print_error("Error: Invalid file extension (must be .cub)");
+        return 0;
+    }
+
+    return 1;
+}
+
+/* SDL initialization function */
+static int init_sdl(SDL_Window **window, SDL_Renderer **renderer) {
+    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+        print_error(SDL_GetError());
+        return 0;
+    }
+
+    *window = SDL_CreateWindow(
+        "TRODO",
+        SDL_WINDOWPOS_CENTERED,
+        SDL_WINDOWPOS_CENTERED,
+        800, 600,
+        SDL_WINDOW_SHOWN
+    );
+
+    if (!*window) {
+        print_error(SDL_GetError());
         SDL_Quit();
-        return (0);
+        return 0;
     }
 
-    *renderer = SDL_CreateRenderer(*window, -1, SDL_RENDERER_ACCELERATED);
-    if (!*renderer)
-    {
-        ft_putstr_fd("Error creating SDL renderer: ", 2);
-        ft_putstr_fd(SDL_GetError(), 2);
+    *renderer = SDL_CreateRenderer(*window, -1,
+        SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+
+    if (!*renderer) {
+        print_error(SDL_GetError());
         SDL_DestroyWindow(*window);
         SDL_Quit();
-        return (0);
+        return 0;
     }
 
-    return (1);
+    // Initialize SDL_image for texture loading
+    if (!(IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG)) {
+        print_error(IMG_GetError());
+        SDL_DestroyRenderer(*renderer);
+        SDL_DestroyWindow(*window);
+        SDL_Quit();
+        return 0;
+    }
+
+    return 1;
 }
 
-void clean_up(SDL_Window *window, SDL_Renderer *renderer, t_map *map)
-{
-    if (renderer)
-        SDL_DestroyRenderer(renderer);
-    if (window)
-        SDL_DestroyWindow(window);
-    SDL_Quit();
-    
-    // Use the appropriate free function based on your structure
-    free_map_struct(map);  // Using the function declared in your header
-}
+/* Main function */
+int main(int ac, char **av) {
+    SDL_Window *window = NULL;
+    SDL_Renderer *renderer = NULL;
+    t_map *map = NULL;
+    int status = 0;
 
-int main(int ac, char **av)
-{
-    SDL_Window *window;
-    SDL_Renderer *renderer;
-    t_map *map;
-    char *buff;
-    int fd;
+    // Check command line arguments
+    if (!arg_check(ac, av)) {
+        return EXIT_FAILURE;
+    }
 
-    // Initialize SDL2
-    if (!init_sdl(&window, &renderer))
-        return (1);
+    // Initialize SDL
+    if (!init_sdl(&window, &renderer)) {
+        return EXIT_FAILURE;
+    }
 
+    // Initialize map structure
     init_args(&map);
-    buff = NULL;
-
-    if (arg_check(ac, av) != 1)
-    {
-        clean_up(window, renderer, map);
-        return (0);
+    if (!map) {
+        cleanup_and_exit(window, renderer, NULL);
+        return EXIT_FAILURE;
     }
 
-    // Open the .cub file
-    fd = open(av[1], O_RDONLY);
-    if (fd < 0)
-    {
-        ft_putstr_fd("Error: could not open file\n", 2);
-        clean_up(window, renderer, map);
-        return (1);
+    // Parse map file
+    if (!parsing(av[1])) {
+        print_error("Error: Failed to parse map file");
+        cleanup_and_exit(window, renderer, map);
+        return EXIT_FAILURE;
     }
 
-    // Read the .cub file line by line and add to the map
-    while ((buff = get_next_line(fd)) != NULL)
-    {
-        if (ft_strlen(buff) > 0 && buff[ft_strlen(buff) - 1] == '\n')
-            buff[ft_strlen(buff) - 1] = '\0';  // Remove trailing newline
-        ft_lst_add_back(&map, ft_lst_new(buff));  // Add to the map
-        free(buff);  // Free memory after use
+    // Initialize game
+    if (!init_game(window, renderer, map)) {
+        print_error("Error: Failed to initialize game");
+        cleanup_and_exit(window, renderer, map);
+        return EXIT_FAILURE;
     }
-
-    close(fd);
-
-    // Parse the map and setup the minimap
-    parsing(map);
-    set_minimap();
 
     // Main game loop
     SDL_Event event;
     int running = 1;
 
-    while (running)
-    {
-        // Event handling
-        while (SDL_PollEvent(&event))
-        {
-            if (event.type == SDL_QUIT)
-                running = 0;
-            else if (event.type == SDL_KEYDOWN)
-                handle_key_press(&event, &data);
-            else if (event.type == SDL_KEYUP)
-                handle_key_release(&event, &data);
-            else if (event.type == SDL_MOUSEBUTTONDOWN)
-                handle_mouse_press(&event, &data);
-            else if (event.type == SDL_MOUSEMOTION)
-                handle_mouse_motion(&event, &data);
-            else if (event.type == SDL_MOUSEBUTTONUP)
-                handle_mouse_release(&event, &data);
+    while (running) {
+        // Handle events
+        while (SDL_PollEvent(&event)) {
+            switch (event.type) {
+                case SDL_QUIT:
+                    running = 0;
+                    break;
+                case SDL_KEYDOWN:
+                    handle_key_press(&event, &data);
+                    break;
+                case SDL_KEYUP:
+                    handle_key_release(&event, &data);
+                    break;
+                case SDL_MOUSEBUTTONDOWN:
+                    handle_mouse_press(&event, &data);
+                    break;
+                case SDL_MOUSEBUTTONUP:
+                    handle_mouse_release(&event, &data);
+                    break;
+                case SDL_MOUSEMOTION:
+                    handle_mouse_motion(&event, &data);
+                    break;
+            }
         }
 
-        // Clear screen
-        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-        SDL_RenderClear(renderer);
+        // Update game state
+        move();
 
-        // Render game state
+        // Render frame
         render_game(&data);
-        set_rays(renderer);
 
-        // Present the renderer
-        SDL_RenderPresent(renderer);
+        // Cap frame rate
+        SDL_Delay(1000 / 60);
     }
 
     // Cleanup and exit
-    clean_up(window, renderer, map);
-    return (0);
+    cleanup_and_exit(window, renderer, map);
+    return status;
 }

@@ -1,30 +1,12 @@
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
 #include "../Headers/structs.h"
 #include "../Headers/TRODO.h"
+#include <string.h>
+#include <stdio.h>
 
-typedef struct s_img {
-    SDL_Surface *surface;
-    SDL_Texture *texture;
-    int x;
-    int y;
-    int bpp;
-    int line_len;
-    int endian;
-} t_img;
-
-typedef struct s_sdl {
-    SDL_Window *win_ptr;
-    SDL_Renderer *renderer;
-} t_sdl;
-
-// Global variables (preserved from original)
-int cnt;
-int c;
-int ac;
-int a;
-int i;
-int f;
-int mm;
+// Global variables
+int cnt, c, ac, a, i, f, mm;
 
 void path_name(char *path, char *p, int i, int len)
 {
@@ -40,7 +22,7 @@ void path_name(char *path, char *p, int i, int len)
     path[j++] = '.';
     path[j++] = 'p';
     path[j++] = 'n';
-    path[j++] = 'g';  // Changed from xpm to png
+    path[j++] = 'g';
     path[j++] = 0;
 }
 
@@ -56,21 +38,31 @@ void img_pix_put(SDL_Surface *surface, int x, int y, Uint32 color)
     pixels[y * (surface->pitch / sizeof(Uint32)) + x] = color;
 }
 
+void set_pixel(SDL_Texture* texture, int x, int y, Uint32 color)
+{
+    int pitch;
+    void* pixels;
+    if (SDL_LockTexture(texture, NULL, &pixels, &pitch) == 0) {
+        ((Uint32*)pixels)[y * (pitch / sizeof(Uint32)) + x] = color;
+        SDL_UnlockTexture(texture);
+    }
+}
+
 void render_intro(t_sdl *sdl)
 {
     char path[100];
+    SDL_Surface *temp_surface;
     t_img img;
-    int x, y;
 
-    // Clear screen
     SDL_SetRenderDrawColor(sdl->renderer, 0, 0, 0, 255);
     SDL_RenderClear(sdl->renderer);
 
-    // Load and render intro image
     path_name(path, "img/intro/", i, 10);
-    img.surface = IMG_Load(path);
-    if (img.surface) {
-        img.texture = SDL_CreateTextureFromSurface(sdl->renderer, img.surface);
+    temp_surface = IMG_Load(path);
+    if (temp_surface) {
+        img.texture = SDL_CreateTextureFromSurface(sdl->renderer, temp_surface);
+        img.width = 498;
+        img.height = 280;
         SDL_Rect dst = {
             .x = (RES_X - 498) / 2,
             .y = (RES_Y - 280) / 2,
@@ -78,18 +70,17 @@ void render_intro(t_sdl *sdl)
             .h = 280
         };
         SDL_RenderCopy(sdl->renderer, img.texture, NULL, &dst);
-        SDL_FreeSurface(img.surface);
+        SDL_FreeSurface(temp_surface);
         SDL_DestroyTexture(img.texture);
     }
 
-    // Create overlay effect
     SDL_Surface *overlay = SDL_CreateRGBSurface(0, 498, 280, 32,
         0xFF000000, 0x00FF0000, 0x0000FF00, 0x000000FF);
-    
+
     if (overlay) {
         SDL_LockSurface(overlay);
-        for (y = 0; y < 280; y++) {
-            for (x = 0; x < 498; x++) {
+        for (int y = 0; y < 280; y++) {
+            for (int x = 0; x < 498; x++) {
                 Uint32 alpha;
                 if (x < 125)
                     alpha = x * 2;
@@ -101,7 +92,7 @@ void render_intro(t_sdl *sdl)
                     alpha = (-y + 280 - 10) * 20;
                 else
                     alpha = 255;
-                
+
                 img_pix_put(overlay, x, y, (alpha << 24));
             }
         }
@@ -116,7 +107,7 @@ void render_intro(t_sdl *sdl)
             .h = 280
         };
         SDL_RenderCopy(sdl->renderer, overlay_texture, NULL, &overlay_dst);
-        
+
         SDL_DestroyTexture(overlay_texture);
         SDL_FreeSurface(overlay);
     }
@@ -126,13 +117,12 @@ void render_intro(t_sdl *sdl)
         f = 1;
     i = i * (i < 182);
 
-    // Handle "Press to continue" text
     if (f) {
-        SDL_Surface *press_surface = IMG_Load("img/press_to_continue.png");  // Changed from xpm
+        SDL_Surface *press_surface = IMG_Load("img/press_to_continue.png");
         if (press_surface) {
             SDL_LockSurface(press_surface);
-            for (y = 0; y < 53; y++) {
-                for (x = 0; x < 439; x++) {
+            for (int y = 0; y < 53; y++) {
+                for (int x = 0; x < 439; x++) {
                     Uint32 color = get_img_color(press_surface, x, y);
                     if (data.mouse.on_click && (color & 0xFF000000) != 0xFF000000)
                         img_pix_put(press_surface, x, y, 0xFFFFFFFF);
@@ -153,21 +143,20 @@ void render_intro(t_sdl *sdl)
                 .h = 53
             };
             SDL_RenderCopy(sdl->renderer, press_texture, NULL, &press_dst);
-            
+
             SDL_DestroyTexture(press_texture);
             SDL_FreeSurface(press_surface);
         }
     }
 
-    // Handle fade effect when clicked
     if (data.mouse.clicked) {
         SDL_Surface *fade = SDL_CreateRGBSurface(0, RES_X, RES_Y, 32,
             0xFF000000, 0x00FF0000, 0x0000FF00, 0x000000FF);
-        
+
         if (fade) {
             SDL_LockSurface(fade);
-            for (y = 0; y < RES_Y; y++) {
-                for (x = 0; x < RES_X; x++) {
+            for (int y = 0; y < RES_Y; y++) {
+                for (int x = 0; x < RES_X; x++) {
                     img_pix_put(fade, x, y, 0x000000 + ((255 - data.mouse.clicked * 2) << 24));
                 }
             }
@@ -176,35 +165,33 @@ void render_intro(t_sdl *sdl)
             SDL_Texture *fade_texture = SDL_CreateTextureFromSurface(sdl->renderer, fade);
             SDL_SetTextureBlendMode(fade_texture, SDL_BLENDMODE_BLEND);
             SDL_RenderCopy(sdl->renderer, fade_texture, NULL, NULL);
-            
+
             SDL_DestroyTexture(fade_texture);
             SDL_FreeSurface(fade);
         }
         data.mouse.clicked++;
     }
-
-    SDL_RenderPresent(sdl->renderer);
 }
 
 void render_intro1(t_sdl *sdl)
 {
     char path[100];
+    SDL_Surface *temp_surface;
     t_img img;
-    int x, y;
 
     path_name(path, "img/intro1/", mm++, 11);
     SDL_RenderClear(sdl->renderer);
-    
-    img.surface = IMG_Load(path);
-    if (img.surface) {
-        img.texture = SDL_CreateTextureFromSurface(sdl->renderer, img.surface);
+
+    temp_surface = IMG_Load(path);
+    if (temp_surface) {
+        img.texture = SDL_CreateTextureFromSurface(sdl->renderer, temp_surface);
         SDL_RenderCopy(sdl->renderer, img.texture, NULL, NULL);
-        SDL_FreeSurface(img.surface);
+        SDL_FreeSurface(temp_surface);
         SDL_DestroyTexture(img.texture);
     }
-    
+
     SDL_RenderPresent(sdl->renderer);
-    
+
     if (mm >= 175)
         data.mode = INTRO2;
 }
@@ -215,16 +202,16 @@ void render_intr(t_sdl *sdl, SDL_Surface *source)
     int x, y;
 
     SDL_RenderClear(sdl->renderer);
-    
+
     overlay = SDL_CreateRGBSurface(0, RES_X, RES_Y, 32,
         0xFF000000, 0x00FF0000, 0x0000FF00, 0x000000FF);
-    
+
     if (overlay) {
         SDL_LockSurface(overlay);
         for (y = 0; y < RES_Y; y++) {
             for (x = 0; x < RES_X; x++) {
                 Uint32 color = get_img_color(source, x, y);
-                img_pix_put(overlay, x, y, 
+                img_pix_put(overlay, x, y,
                     color + (((255 - i * 4) * !f + ((i * 4) % 256) * f) << 24));
             }
         }
@@ -233,21 +220,31 @@ void render_intr(t_sdl *sdl, SDL_Surface *source)
         SDL_Texture *texture = SDL_CreateTextureFromSurface(sdl->renderer, overlay);
         SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
         SDL_RenderCopy(sdl->renderer, texture, NULL, NULL);
-        
+
         SDL_DestroyTexture(texture);
         SDL_FreeSurface(overlay);
     }
-    
+
     SDL_RenderPresent(sdl->renderer);
 }
 
 void render_intro2(t_sdl *sdl)
 {
-    if (i < 64 * 2)
-        render_intr(sdl, data.intro.int1.surface);
-    else
-        render_intr(sdl, data.intro.int2.surface);
-    
+    SDL_Surface *temp_surface1 = SDL_CreateRGBSurface(0, RES_X, RES_Y, 32,
+        0xFF000000, 0x00FF0000, 0x0000FF00, 0x000000FF);
+    SDL_Surface *temp_surface2 = SDL_CreateRGBSurface(0, RES_X, RES_Y, 32,
+        0xFF000000, 0x00FF0000, 0x0000FF00, 0x000000FF);
+
+    if (temp_surface1 && temp_surface2) {
+        if (i < 64 * 2)
+            render_intr(sdl, temp_surface1);
+        else
+            render_intr(sdl, temp_surface2);
+    }
+
+    SDL_FreeSurface(temp_surface1);
+    SDL_FreeSurface(temp_surface2);
+
     i++;
     if (i == 64)
         f = 1;
@@ -261,155 +258,103 @@ void render_intro2(t_sdl *sdl)
     }
 }
 
-void setting_render(t_sdl *sdl, SDL_Surface *source, int x, int y, int type)
+void paint_img2(t_img *img, int x_w, int y_w, int color)
 {
-    int i, j;
-    SDL_Surface *overlay;
-
-    overlay = SDL_CreateRGBSurface(0, source->w, source->h, 32,
+    SDL_Surface *temp_surface = SDL_CreateRGBSurface(0, img->width, img->height, 32,
         0xFF000000, 0x00FF0000, 0x0000FF00, 0x000000FF);
-    
-    if (overlay) {
-        SDL_LockSurface(overlay);
-        for (i = 0; i < source->w; i++) {
-            for (j = 0; j < source->h; j++) {
-                Uint32 color = get_img_color(source, i, j);
-                if ((color & 0xFF000000) != 0xFF000000) {
-                    if (data.mouse.on_clk[type])
-                        img_pix_put(overlay, i, j, color + 0xFFFFFF);
-                    else if (data.mouse.on_hov[type])
-                        img_pix_put(overlay, i, j, color + 0xFF0000);
-                    else
-                        img_pix_put(overlay, i, j, color);
-                }
+    SDL_Texture* img2_texture = SDL_CreateTexture(data.sdl.renderer, SDL_PIXELFORMAT_ARGB8888,
+        SDL_TEXTUREACCESS_STREAMING, img->width, img->height);
+
+    if (temp_surface && img2_texture) {
+        for (int y = 0; y < img->height; y++) {
+            for (int x = 0; x < img->width; x++) {
+                Uint32 pixel_color = get_img_color(temp_surface, x, y);
+                if (pixel_color != 0xff000000 && color >= 2)
+                    set_pixel(img2_texture, x, y, 0xffffff * (mm % 200 < 100) + 0xff0000 * (mm % 200 >= 100));
+                else if (pixel_color != 0xff000000 && color)
+                    set_pixel(img2_texture, x, y, 0xff0000);
+                else
+                    set_pixel(img2_texture, x, y, pixel_color);
             }
         }
-        SDL_UnlockSurface(overlay);
-
-        SDL_Texture *texture = SDL_CreateTextureFromSurface(sdl->renderer, overlay);
-        SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
-        SDL_Rect dst = {
-            .x = x,
-            .y = y,
-            .w = source->w,
-            .h = source->h
-        };
-        SDL_RenderCopy(sdl->renderer, texture, NULL, &dst);
-        
-        SDL_DestroyTexture(texture);
-        SDL_FreeSurface(overlay);
+        SDL_Rect dest = {x_w, y_w, img->width, img->height};
+        SDL_RenderCopy(data.sdl.renderer, img2_texture, NULL, &dest);
     }
-}
-typedef struct s_sdl {
-    SDL_Window* window;
-    SDL_Renderer* renderer;
-} t_sdl;
 
-// Update the rendering function
-int rendering(void *d) {
-    d = NULL;
-    if (data.mouse.clicked == 128)
-        i = 0,
-        f = 0,
-        data.mouse.clicked = 0,
-        data.mode = INTRO2;
-
-    SDL_RenderClear(data.sdl.renderer);
-
-    if (data.mode == INTRO)
-        render_intro();
-    if (data.mode == INTRO1)
-        render_intro1();
-    if (data.mode == INTRO2)
-        render_intro2();
-    if (data.mode == SETTING)
-        render_setting();
-    if (data.mode == SETTING2)
-        render_setting2();
-    if (data.mode == ANIMATE_SETT2_IN)
-        animate_sett_in();
-    if (data.mode == ANIMATE_SETT2_OUT)
-        animate_sett_out();
-    if (data.mode == S_CONTROL)
-        render_control();
-    if (data.mode == G_MAP)
-        render_map();
-    if (data.mode == GAME)
-        data.intro.map = 0,
-        render_game();
-    else if (data.mouse.x != 10000 && data.mode != G_MAP && data.mode != GAME)
-        SDL_RenderCopy(data.sdl.renderer, data.mouse.texture, NULL, &(SDL_Rect){data.mouse.x, data.mouse.y, data.mouse.width, data.mouse.height});
-        SDL_RenderCopy(data.sdl.renderer, data.intro.lt.texture, NULL, &(SDL_Rect){0, 0, RES_X, RES_Y});
-
-    SDL_RenderPresent(data.sdl.renderer);
-    return (0);
-}
-
-// Update the set_pixel function
-void set_pixel(SDL_Texture* texture, int x, int y, Uint32 color) {
-    int pitch;
-    void* pixels;
-    if (SDL_LockTexture(texture, NULL, &pixels, &pitch) == 0) {
-        ((Uint32*)pixels)[y * (pitch / sizeof(Uint32)) + x] = color;
-        SDL_UnlockTexture(texture);
-    }
-}
-
-// Update the paint_img2 function
-void paint_img2(t_img *img, int x_w, int y_w, int color) {
-    SDL_Texture* img2_texture = SDL_CreateTexture(data.sdl.renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, img->x, img->y);
-    for (int y = 0; y < img->y; y++) {
-        for (int x = 0; x < img->x; x++) {
-            if ((unsigned int)get_img_color(img, x, y) != 0xff000000 && color >= 2)
-                set_pixel(img2_texture, x, y, 0xffffff * (mm % 200 < 100) + 0xff0000 * (mm % 200 >= 100));
-            else if ((unsigned int)get_img_color(img, x, y) != 0xff000000 && color)
-                set_pixel(img2_texture, x, y, 0xff0000);
-            else
-                set_pixel(img2_texture, x, y, get_img_color(img, x, y));
-        }
-    }
-    SDL_RenderCopy(data.sdl.renderer, img2_texture, NULL, &(SDL_Rect){x_w, y_w, img->x, img->y});
+    SDL_FreeSurface(temp_surface);
     SDL_DestroyTexture(img2_texture);
     mm++;
 }
 
-// Update the main loop
-int main(int argc, char *argv[]) {
-    // Initialize SDL2
-    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-        fprintf(stderr, "SDL initialization failed: %s\n", SDL_GetError());
-        return 1;
+// Function declarations for the missing functions
+void render_setting(t_sdl *sdl);
+void render_setting2(t_sdl *sdl);
+void animate_sett_in(t_sdl *sdl);
+void animate_sett_out(t_sdl *sdl);
+void render_control(t_sdl *sdl);
+void render_map(t_sdl *sdl);
+void render_game(t_data *data);
+
+int rendering(void *d)
+{
+    (void)d;
+
+    if (data.mouse.clicked == 128) {
+        i = 0;
+        f = 0;
+        data.mouse.clicked = 0;
+        data.mode = INTRO2;
     }
 
-    // Create the SDL window and renderer
-    data.sdl.window = SDL_CreateWindow("My Game", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, RES_X, RES_Y, SDL_WINDOW_SHOWN);
-    data.sdl.renderer = SDL_CreateRenderer(data.sdl.window, -1, SDL_RENDERER_ACCELERATED);
+    SDL_RenderClear(data.sdl.renderer);
 
-    // Load and prepare your assets
-    // ...
-
-    // Main loop
-    while (1) {
-        // Handle events
-        SDL_Event event;
-        while (SDL_PollEvent(&event)) {
-            if (event.type == SDL_QUIT) {
-                break;
-            }
-            // Handle other events
-        }
-
-        // Render the frame
-        rendering(NULL);
-
-        // Delay
-        SDL_Delay(16); // Approximately 60 FPS
+    switch(data.mode) {
+        case INTRO:
+            render_intro(&data.sdl);
+            break;
+        case INTRO1:
+            render_intro1(&data.sdl);
+            break;
+        case INTRO2:
+            render_intro2(&data.sdl);
+            break;
+        case SETTING:
+            render_setting(&data.sdl);
+            break;
+        case SETTING2:
+            render_setting2(&data.sdl);
+            break;
+        case ANIMATE_SETT2_IN:
+            animate_sett_in(&data.sdl);
+            break;
+        case ANIMATE_SETT2_OUT:
+            animate_sett_out(&data.sdl);
+            break;
+        case S_CONTROL:
+            render_control(&data.sdl);
+            break;
+        case MAP_MODE:
+            render_map(&data.sdl);
+            break;
+        case GAME:
+            data.intro.map = 0;
+            render_game(&data);
+            break;
+        default:
+            break;
     }
 
-    // Clean up
-    SDL_DestroyRenderer(data.sdl.renderer);
-    SDL_DestroyWindow(data.sdl.window);
-    SDL_Quit();
+    if (data.mouse.x != 10000 && data.mode != MAP_MODE && data.mode != GAME) {
+        SDL_Rect mouseRect = {
+            .x = data.mouse.x,
+            .y = data.mouse.y,
+            .w = 32,  // Default width for mouse cursor
+            .h = 32   // Default height for mouse cursor
+        };
+        SDL_RenderCopy(data.sdl.renderer, data.mouse.img, NULL, &mouseRect);
+    }
 
+    SDL_RenderPresent(data.sdl.renderer);
     return 0;
 }
+

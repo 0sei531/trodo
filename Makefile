@@ -1,41 +1,58 @@
-# Project Name
-NAME    = trodo
+CC = gcc
+CFLAGS = -Werror -Wall -Wextra -Ofast -g3 -flto -march=native -O3 -ffast-math -msse4.2 -mtune=intel -fno-common
+INCLUDES = -I Headers -I/usr/include/SDL2
+LIBS = -lSDL2 -lSDL2_image -lSDL2_mixer -lm
+DEFINES = -D_REENTRANT -fno-strict-aliasing
 
-# Compiler and Flags
-CC      = gcc
-CFLAGS  = -Werror -Wall -Wextra -Ofast -g3 -flto -march=native -O3 -ffast-math -msse4.2 -mtune=intel -D_REENTRANT -I/usr/include/SDL2
+# Utility source files organized by category
+UTILS_SRCS = utils/string.c \
+             utils/conversion.c \
+             utils/memory.c \
+             utils/file.c \
+             utils/error.c \
+             utils/game.c \
+             utils/list.c \
+             utils/event_handlers.c \
+             utils/key_handlers.c \
+             utils/input.c \
+             utils/init.c \
+             utils/cleanup.c \
+             utils/render.c
 
-# Directories
-SRC_DIR      = src
-UTILS_DIR    = utils
-HEADERS_DIR  = Headers
-IMG_DIR      = img
+# Main source files - explicitly include render_game.c
+MAIN_SRCS = trodo.c \
+            src/parsing.c \
+            src/set_minimap.c \
+            src/move.c \
+            src/rendring.c \
+            src/render_game.c \
+            src/3DCast.c \
+            src/mouse_press.c \
+            src/key_press_control.c \
+            src/mouse_move.c \
+            src/mouse_release.c \
+            src/map_animation.c \
+            src/design_env.c \
+            src/init_multi_imgs.c
 
-# Source Files
-SRCS = $(NAME).c \
-       $(UTILS_DIR)/ft_strlen.c $(UTILS_DIR)/ft_strncmp.c $(UTILS_DIR)/ft_strjoin.c $(UTILS_DIR)/ft_split.c $(UTILS_DIR)/ft_memcpy.c $(UTILS_DIR)/ft_substr.c $(UTILS_DIR)/ft_strchr.c $(UTILS_DIR)/get_next_line.c $(UTILS_DIR)/ft_isdigit.c $(UTILS_DIR)/ft_atoi.c \
-       $(UTILS_DIR)/ft_lst_new.c $(UTILS_DIR)/ft_lst.c $(UTILS_DIR)/ft_strnstr.c $(UTILS_DIR)/ft_str_trim.c $(UTILS_DIR)/spaces.c \
-       $(SRC_DIR)/parsing.c $(SRC_DIR)/set_minimap.c $(SRC_DIR)/move.c $(SRC_DIR)/key_release.c $(SRC_DIR)/rendring.c $(UTILS_DIR)/error.c $(UTILS_DIR)/close.c \
-       $(SRC_DIR)/3DCast.c $(SRC_DIR)/mouse_press.c $(SRC_DIR)/key_press.c $(SRC_DIR)/mouse_move.c $(SRC_DIR)/render_game.c $(SRC_DIR)/mouse_release.c $(SRC_DIR)/map_animation.c $(SRC_DIR)/design_env.c $(SRC_DIR)/init_multi_imgs.c
+SRCS = $(MAIN_SRCS) $(UTILS_SRCS)
+OBJS = $(SRCS:.c=.o)
+TARGET = trodo
 
-# Include Headers
-INCLUDES = -I $(HEADERS_DIR)
+.PHONY: all clean fclean re
 
-# Libraries
-LIBS    = -lSDL2 -lm
+all: $(TARGET)
 
-# Build Targets
-all: $(NAME)
+$(TARGET): $(OBJS)
+	$(CC) $(CFLAGS) $(DEFINES) $(INCLUDES) $(OBJS) -o $(TARGET) $(LIBS)
 
-$(NAME): $(SRCS)
-	$(CC) $(CFLAGS) $(SRCS) $(INCLUDES) $(LIBS) -o $(NAME)
+%.o: %.c
+	$(CC) $(CFLAGS) $(DEFINES) $(INCLUDES) -c $< -o $@
 
 clean:
-	rm -f $(NAME)
+	rm -f $(OBJS)
 
 fclean: clean
-	rm -rf $(IMG_DIR)/guns $(IMG_DIR)/enemies
+	rm -f $(TARGET)
 
 re: fclean all
-
-.PHONY: clean fclean all re
